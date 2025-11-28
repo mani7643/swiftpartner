@@ -7,7 +7,7 @@ export default function LiveMap() {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let map: google.maps.Map;
+    let map: google.maps.Map | null = null;
 
     const loadMap = async () => {
       try {
