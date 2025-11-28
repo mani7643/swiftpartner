@@ -14,7 +14,7 @@ export default function LiveMap() {
         // Set options (replaces old Loader)
         setOptions({
             key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-          version: "weekly",
+          //version: "weekly",
           libraries: ["marker"],  // Add marker library if needed
         });
 
