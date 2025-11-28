@@ -11,17 +11,26 @@ import Link from "next/link";
 export default function Dashboard() {
   const { isOnline, currentOrder, setCurrentOrder, acceptOrder, setOnline } = useRiderStore();
 
-  useEffect(() => {
-    if (!isOnline) return;
 
-    const socket: Socket = io();
-    socket.on("new-order", (order: any) => {
-      setCurrentOrder(order);
-    });
-    return () => {
-        socket.disconnect();
-    };
-  }, [isOnline, setCurrentOrder]);
+const socketRef = useRef<Socket | null>(null);
+
+useEffect(() => {
+  if (!isOnline) {
+    socketRef.current?.disconnect();
+    socketRef.current = null;
+    return;
+  }
+
+  socketRef.current = io();
+  socketRef.current.on("new-order", (order: any) => {
+    setCurrentOrder(order);
+  });
+
+  return () => {
+    socketRef.current?.disconnect();
+  };
+}, [isOnline, setCurrentOrder]);
+
 
   return (
     <>
