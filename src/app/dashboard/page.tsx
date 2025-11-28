@@ -5,7 +5,7 @@ import { UserButton } from "@clerk/nextjs";
 import LiveMap from "@/components/LiveMap";
 import OrderAlert from "@/components/OrderAlert";
 import { useRiderStore } from "@/store/useRiderStore";
-import { io } from "socket.io-client";
+import { io, Socket } from 'socket.io-client';
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -14,11 +14,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isOnline) return;
 
-    const socket = io();
+    const socket: Socket = io();
     socket.on("new-order", (order: any) => {
       setCurrentOrder(order);
     });
-    return () => socket.disconnect();
+    return () => {
+        socket.disconnect();
+    };
   }, [isOnline, setCurrentOrder]);
 
   return (
