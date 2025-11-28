@@ -12,12 +12,11 @@ export default function Dashboard() {
   const { isOnline, currentOrder, setCurrentOrder, acceptOrder, setOnline } = useRiderStore();
 
 
-useEffect(() => {
-  if (!isOnline) {
-    return undefined; // Explicitly return undefined
-  }
+useEffect((): void | (() => void) => {
+  if (!isOnline) return;
 
   const socket: Socket = io();
+
   socket.on("new-order", (order: any) => {
     setCurrentOrder(order);
   });
@@ -26,6 +25,7 @@ useEffect(() => {
     socket.disconnect();
   };
 }, [isOnline, setCurrentOrder]);
+
 
 
   return (

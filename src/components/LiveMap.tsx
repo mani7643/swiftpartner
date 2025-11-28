@@ -13,7 +13,7 @@ export default function LiveMap() {
       try {
         // Set options (replaces old Loader)
         setOptions({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+          apiKey: process.env.AIzaSyB0Gctj8kf_twvXPRioVn6LAhTYYS5_gio,
           version: "weekly",
           libraries: ["marker"],  // Add marker library if needed
         });
