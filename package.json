@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.5",
-    "@googlemaps/js-api-loader": "^2.0.2",
     "@prisma/client": "^7.0.1",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
