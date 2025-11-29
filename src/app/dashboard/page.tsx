@@ -1,81 +1,40 @@
-"use client";
-
-import { useEffect } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import LiveMap from "@/components/LiveMap";
+import UserProfileButton from "@/components/UserProfileButton";
+import { getTodayEarnings } from "@/lib/earnings";
 import OrderAlert from "@/components/OrderAlert";
-import { useRiderStore } from "@/store/useRiderStore";
-import { io, Socket } from 'socket.io-client';
-import Link from "next/link";
 
-export default function Dashboard() {
-  const { isOnline, currentOrder, setCurrentOrder, acceptOrder, setOnline } = useRiderStore();
-
-
-useEffect((): void | (() => void) => {
-  if (!isOnline) return;
-
-  const socket: Socket = io();
-
-  socket.on("new-order", (order: any) => {
-    setCurrentOrder(order);
-  });
-
-  return () => {
-    socket.disconnect();
-  };
-}, [isOnline, setCurrentOrder]);
-
-
+export default async function Dashboard() {
+  const user = await currentUser();
+  const earnings = user ? getTodayEarnings(user.id) : 0;
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-100 pb-20 relative">
-        <header className="bg-green-600 text-white p-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">SwiftPartner</h1>
-            <p>Rider</p>
-          </div>
-          <UserButton />
-        </header>
-
-        <div className="flex justify-center p-6 bg-gray-100">
-  <button
-    onClick={() => setOnline(!isOnline)}
-    className={`px-16 py-8 rounded-3xl text-4xl font-bold shadow-2xl transition-all transform hover:scale-105 ${
-  isOnline
-    ? "bg-green-500 text-white animate-pulse ring-4 ring-green-300"
-    : "bg-gray-400 text-gray-800"
-}`}
-  >
-    {isOnline ? "ONLINE" : "GO ONLINE"}
-  </button>
-</div>
-        <div className="h-[calc(100vh-280px)] mt-4">
-          <LiveMap />
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
+        <div>
+          <h1 className="text-2xl font-bold">SwiftPartner</h1>
+          <p className="text-sm opacity-90">Hello, {user?.firstName || "Rider"}</p>
         </div>
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-xs opacity-80">Today's Earnings</p>
+            <p className="text-3xl font-bold">₹{earnings}</p>
+            {earnings === 0 && <p className="text-sm opacity-70">Waiting for orders...</p>}
+          </div>
+          <UserProfileButton />
+        </div>
+      </header>
 
-        {currentOrder && (
-          <OrderAlert
-            order={currentOrder}
-            onAccept={() => {
-              acceptOrder(currentOrder);
-              setCurrentOrder(null);
-            }}
-            onReject={() => setCurrentOrder(null)}
-          />
-        )}
+      <div className="bg-white p-6 text-center shadow">
+        <p className="text-4xl font-bold text-green-600">ONLINE</p>
+        <p className="text-gray-600 mt-2">Ready for orders</p>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg flex justify-around items-center h-16">
-        <Link href="/dashboard" className="flex-1 text-center">
-          <div className="text-green-600 font-bold text-lg">Home</div>
-        </Link>
-        <Link href="/history" className="flex-1 text-center">
-          <div className="text-gray-600 font-bold text-lg">History</div>
-        </Link>
-      </nav>
-    </>
+      <div className="h-[calc(100vh-220px)]">
+        <LiveMap />
+      </div>
+      <OrderAlert />
+    </div>
   );
 }
+

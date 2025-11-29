@@ -6,8 +6,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SwiftPartner – Delivery Rider",
-  description: "Real-time delivery partner app",
+  title: "SwiftPartner",
+  description: "Delivery Rider App",
 };
 
 export default function RootLayout({
@@ -18,6 +18,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          {/* Pusher script — correct way in App Router */}
+          <script src="https://js.pusher.com/8.2/pusher.min.js" async />
+        </head>
         <body className={inter.className}>{children}</body>
       </html>
     </ClerkProvider>
