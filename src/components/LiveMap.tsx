@@ -4,14 +4,11 @@ import { useEffect, useRef } from "react";
 
 export default function LiveMap() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<google.maps.Map | null>(null);
+  const mapInitialized = useRef(false);
 
   useEffect(() => {
-    // Prevent loading multiple times
-    if (window.google?.maps) {
-      initMap();
-      return;
-    }
+    if (mapInitialized.current) return;
+    mapInitialized.current = true;
 
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&loading=async`;
@@ -19,13 +16,16 @@ export default function LiveMap() {
     document.head.appendChild(script);
 
     script.onload = () => {
-      initMap();
+      // Wait a tiny bit for google.maps to be fully ready
+      setTimeout(() => {
+        initializeMap();
+      }, 100);
     };
 
-    function initMap() {
-      if (!mapRef.current) return;
+    const initializeMap = () => {
+      if (!mapRef.current || !window.google?.maps) return;
 
-      const map = new google.maps.Map(mapRef.current, {
+      const map = new window.google.maps.Map(mapRef.current, {
         center: { lat: 12.9716, lng: 77.5946 },
         zoom: 15,
         disableDefaultUI: true,
@@ -36,9 +36,7 @@ export default function LiveMap() {
         ],
       });
 
-      mapInstance.current = map;
-
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         map,
         icon: {
           url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
@@ -48,8 +46,8 @@ export default function LiveMap() {
               <circle cx="22" cy="22" r="6" fill="#34d399"/>
             </svg>
           `),
-          scaledSize: new google.maps.Size(44, 44),
-          anchor: new google.maps.Point(22, 22),
+          scaledSize: new window.google.maps.Size(44, 44),
+          anchor: new window.google.maps.Point(22, 22),
         },
       });
 
@@ -64,17 +62,11 @@ export default function LiveMap() {
             marker.setPosition(pos);
             map.panTo(pos);
           },
-          () => {
-            console.log("Location denied");
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 30000,
-          }
+          () => console.log("Location denied"),
+          { enableHighAccuracy: true }
         );
       }
-    }
+    };
 
     return () => {
       if (script.parentNode) script.parentNode.removeChild(script);
