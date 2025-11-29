@@ -7,13 +7,22 @@ export default function LiveMap() {
   const mapInstance = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
-    // Load Google Maps script manually (bypasses the buggy Loader)
+    // Prevent loading multiple times
+    if (window.google?.maps) {
+      initMap();
+      return;
+    }
+
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&loading=async`;
     script.async = true;
     document.head.appendChild(script);
 
     script.onload = () => {
+      initMap();
+    };
+
+    function initMap() {
       if (!mapRef.current) return;
 
       const map = new google.maps.Map(mapRef.current, {
@@ -21,6 +30,7 @@ export default function LiveMap() {
         zoom: 15,
         disableDefaultUI: true,
         zoomControl: true,
+        gestureHandling: "greedy",
         styles: [
           { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
         ],
@@ -32,15 +42,18 @@ export default function LiveMap() {
         map,
         icon: {
           url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="18" fill="#10b981" stroke="#059669" stroke-width="4"/>
-              <circle cx="20" cy="20" r="10" fill="#d1fae5"/>
+            <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="22" cy="22" r="20" fill="#10b981" stroke="#059669" stroke-width="4"/>
+              <circle cx="22" cy="22" r="12" fill="#d1fae5"/>
+              <circle cx="22" cy="22" r="6" fill="#34d399"/>
             </svg>
           `),
+          scaledSize: new google.maps.Size(44, 44),
+          anchor: new google.maps.Point(22, 22),
         },
       });
 
-      // Live GPS tracking
+      // Live location tracking
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
           (position) => {
@@ -52,17 +65,19 @@ export default function LiveMap() {
             map.panTo(pos);
           },
           () => {
-            console.log("Location denied – using default");
+            console.log("Location denied");
           },
-          { enableHighAccuracy: true }
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 30000,
+          }
         );
       }
-    };
+    }
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
+      if (script.parentNode) script.parentNode.removeChild(script);
     };
   }, []);
 
